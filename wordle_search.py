@@ -11,10 +11,6 @@ def words_without_letters(letters):
     rex = re.compile("[^" + letters + "]{5}")
     return [w for w in words if re.search(rex, w)]
 
-def letters_in_pos(**letterAndPosition):
-    rex = ['.' for i in range(5)]
-    for i in range(5):
-        if letterAndPosition[i]:
-            rex[i] + letterAndPosition[i]
-    rex = re.compile("".join(rex))
+def letters_in_position(l1='.',l2='.',l3='.',l4='.',l5='.'):
+    rex = re.compile("["+l1+l2+l3+l4+l5+"]")
     return [w for w in words if re.search(rex, w)]
