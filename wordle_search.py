@@ -1,47 +1,7 @@
 #!/usr/bin/python3
 import re, sys
 from english_words import english_words_lower_alpha_set as words
-
 words = [w for w in words if len(w) == 5]
-def words_with_letters(letters):
-    rex = re.compile("[" + letters + "]{5}")
-    return [w for w in words if re.search(rex, w)]
-
-def words_without_letters(letters):
-    rex = re.compile("[^" + letters + "]{5}")
-    return [w for w in words if re.search(rex, w)]
-
-def letters_in_position(l1='.',l2='.',l3='.',l4='.',l5='.'):
-    rex = re.compile("["+l1+l2+l3+l4+l5+"]")
-    return [w for w in words if re.search(rex, w)]
-
-def guess_and_flags(guess, flags):
-    if flags == "22222":
-        print("Congratulations!")
-    stuff = enumerate(zip([c for c in guess], [f for f in flags]))
-    regex = ['.' for i in range(5)]
-    exclude = []
-    include = []
-    for i, c, f in stuff:
-        if f == 0:
-            exclude.append(c)
-        if f == 1:
-            include.append(c)
-            regex[i] = "[^" + c + "]"
-        if f == 2:
-            regex[i] = c
-    if exclude:
-        exclude_clause = re.compile("[^" + "".join(exclude) + "]")
-        words = [w for w in words if re.search(exclude_clause, w)]
-    if include:
-        include_clause = re.compile("[" + "".join(include) + "]")
-        words = [w for w in words if re.search(include_clause, w)]
-    positional_clause = re.compile("[" + "".join(regex) + "]")
-    words = [w for w in words if re.search(positional_clause, w)]
-    return words
-
-def maximum_entropy_words(word_list):
-    """prefer words with more different letters, and more likely letters"""
 
 help_text = """Please enter your initial guess and the results in the following form:
 
@@ -51,17 +11,101 @@ replacing "guess" with the word you guessed, and the digits corresponding with
 the results of your guess. "0" representing letters that aren't present (grey squares),
 "1" representing letters that are in the wrong place (yellow squares) and "2" 
 representing letters that are in the correct place (green squares).
+
+Don't put either part of your guess in quotation marks.
+
+Enter "exit" to exit the program.
 """
+
+success = lambda f: f == "22222"
+include_reg = lambda c: "[" + c + "]+"
+exclude_reg = lambda c: "[^" + c + "]"
+wrap_up = lambda guess, flags: enumerate(zip([c for c in guess.lower()], [f for f in flags]))
+def reg_filter(regex, selected_words):
+    return [w for w in selected_words if re.search(regex, w)]
+
+def filter_correct_positions(guess, flags, selected_words = words):
+    pos_reg = re.compile("".join([c if f == "2" else '.' for c, f in zip(guess, flags)]))
+    return reg_filter(pos_reg, selected_words)
+
+def filter_wrong_positions(guess, flags, selected_words = words):
+    pos_reg = re.compile("".join([exclude_reg(c) if f == "1" else '.' for c, f in zip(guess, flags)]))
+    return reg_filter(pos_reg, selected_words)
+
+def filter_correct_letters(guess, flags, selected_words = words):
+    correct_letters = [c for c, f in zip(guess, flags) if int(f) > 0]
+    for l in correct_letters:
+        has_letter = re.compile(include_reg(l))
+        selected_words = reg_filter(has_letter, selected_words)
+    return selected_words
+
+def filter_wrong_letters(guess, flags, selected_words = words):
+    wrong_letters = "".join([c for c, f in zip(guess, flags) if f == "0"])
+    pos = [exclude_reg(wrong_letters) if f != "2" else '.' for c, f in zip(guess, flags)]
+    pos_reg = re.compile("".join(pos))
+    return reg_filter(pos_reg, selected_words)
+
+def check_guess(guess, flags, selected_words = words):
+    selected_words = filter_correct_positions(guess, flags, selected_words)
+    selected_words = filter_wrong_positions(guess, flags, selected_words)
+    selected_words = filter_correct_letters(guess, flags, selected_words)
+    selected_words = filter_wrong_letters(guess, flags, selected_words)
+    return selected_words
+
+def maximum_entropy_words(word_list):
+    """prefer words with more different letters, and more likely letters"""
+    return word_list # TODO: Implement!
+
+
+def take_input(first = True):
+    if first:
+        print(help_text)
+        data = input("> ")
+    else:
+        data = input("> ")
+    if data.lower() in ["q","quit","exit","x","stop"]:
+        quit()
+    if data.lower() in ["h", "help"]:
+        print(help_text)
+        data = take_input(False)
+    while len(data) != 11: 
+        print("incorrect syntax, please try again...")
+        data = take_input(False)
+    if data[5] != ' ':
+        print("incorrect syntax, please try again...")
+        data = take_input(False)
+    guess, flags = data.split(' ')
+    if flags.isalpha() and guess.isdigit():
+        guess, flags = flags, guess
+    if not flags.isdigit() or not guess.isalpha():
+        print("incorrect syntax, please try again...")
+        data = take_input(False)
+    return data.split(' ')
+
+def play_round(selected_words):
+    guess, flags = take_input(False)
+    return check_guess(guess, flags, [w for w in selected_words])
+
+def user_loop():
+    possible_words = [w for w in words if len(w) == 5]
+    print(help_text)
+    for r in range(6):
+        print("Round " + str(r) + ":\n")
+        possible_words = play_round(possible_words)
+        print(possible_words)
+        if len(possible_words) < 2:
+            break
+
+def cli(guess, flags):
+    """take arguments directly from the command line"""
+    print(*check_guess(guess,flags), file = sys.stdout)
 
 
 def main():
-    if sys.argv[1] == "help":
-        print(help_text)
-    if sys.argv[1].lower() in ["q","quit"]:
-        exit
-    guess = sys.argv[1]
-    flags = sys.argv[2]
-    print(letters_in_position(guess))
+    if len(sys.argv) < 2: # command line mode
+        user_loop()
+    else: # interactive mode
+        cli(sys.argv[1], sys.argv[2])
 
 
 if __name__ == "__main__":
