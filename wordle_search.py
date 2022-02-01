@@ -4,11 +4,12 @@ from english_words import english_words_lower_alpha_set as words
 words = [w for w in words if len(w) == 5]
 
 lawler_words = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    "wordlist.txt"),
+    "wordlist"),
     "r"
     ).read().split("\n")
 lawler_lower = list(w.lower() for w in lawler_words if len(w) == 5)
 words = words + lawler_lower
+words = list(set(words))
 
 help_text = """Please enter your initial guess and the results in the following form:
 
