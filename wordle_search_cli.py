@@ -1,7 +1,10 @@
 #!/usr/bin/python3
-import re, os
+import re, sys, os, argparse
 from english_words import english_words_lower_alpha_set as words
 words = [w for w in words if len(w) == 5]
+
+# TODO
+# Allow set it up so it can be piped together with subsequent calls.
 
 # Word setup
 
@@ -106,5 +109,29 @@ def user_loop():
         if len(possible_words) < 2:
             break
 
+# CLI setup
+parser = argparse.ArgumentParser(description="A program to help you update your Wordle guess.")
+parser.add_argument("guess", nargs = 1, metavar = "word", type = str)
+parser.add_argument("flags", nargs = 1, type = str, default = "00000")
+parser.add_argument("wordlist", nargs = "*", type = str)
+args = parser.parse_args()
+
+
+def cli(guess, flags, wordlist):
+    """take arguments directly from the command line"""
+    if wordlist:
+        answer = check_guess(guess, flags, wordlist)
+    else:
+        answer = check_guess(guess, flags, [w for w in words if len(w) == 5])
+    print(answer, file = sys.stdout)
+
+def main():
+    if len(sys.argv) < 2: # command line mode
+        user_loop()
+    else: # interactive mode
+        ########cli(sys.argv[1], sys.argv[2])
+        cli(args.guess[0], args.flags[0], args.wordlist[:])
+
+
 if __name__ == "__main__":
-    user_loop()
+    main()
