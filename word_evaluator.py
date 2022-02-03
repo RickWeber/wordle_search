@@ -48,10 +48,11 @@ def words_dropped(guess, target, wordlist):
     return initial_count - new_count
 
 # Try a word against a few random words, see how much it narrows the range on average
+# TODO: find out why it's returning such small numbers
 def sample_score(word, wordlist, k = 20):
     random_targets = random.choices([w for w in wordlist if w != word], k = k)
     scores = np.array([words_dropped(word, target, wordlist) for target in random_targets])
-    return np.mean(scores)
+    return scores
 
 # Try a pair of words (in order) and see how much they narrow the range
 def score_pair(guess1, guess2, target, wordlist):
@@ -76,11 +77,15 @@ def sample_score_pair(guess1, guess2, wordlist, k = 20):
 
 # CLI setup
 parser = argparse.ArgumentParser(description="A program to help you choose a better first guess word for Wordle. Higher scores are better")
-parser.add_argument("guess", nargs = 1, metavar = "word", type = str)
+parser.add_argument("guess1", nargs = 1, metavar = "word1", type = str)
+parser.add_argument("guess2", nargs = "?", metavar = "word2", type = str)
 args = parser.parse_args()
 
 def user_loop():
-    answer = sample_score(args.guess, words, 100)
+    if args.guess2:
+        answer = sample_score_pair(words[0], words[1], words)
+    else:
+        answer = sample_score(args.guess1, words)
     print(answer, file = sys.stdout)
 
 if __name__ == "__main__":
