@@ -81,6 +81,8 @@ parser.add_argument("guess1", nargs = 1, metavar = "word1", type = str)
 parser.add_argument("guess2", nargs = "?", metavar = "word2", type = str)
 args = parser.parse_args()
 
+# TODO
+# Make sure this is doing what it's supposed to do.
 def user_loop():
     if args.guess2:
         answer = sample_score_pair(words[0], words[1], words)
