@@ -18,7 +18,4 @@ program and it will return a list of viable guesses:
 Continuing this way will return shorter and shorter lists until you've got a
 winning guess. Hopefully it happens quickly enough for a win!
 
-I'm playing with two wordlists: one from the
-[english_words](https://github.com/mwiens91/english-words-py) library (available
-via pip), and [this](http://www-personal.umich.edu/~jlawler/wordlist.html) list
-from John Lawler. 
+The wordlist is shamelessly ripped off from wordle.
