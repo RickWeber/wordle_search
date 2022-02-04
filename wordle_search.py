@@ -1,14 +1,13 @@
 #!/usr/bin/python3
-import re, os, random
+import re, os
+import numpy as np
 #from english_words import english_words_lower_alpha_set as words
 #words = [w for w in words if len(w) == 5]
 
 # Word setup
-words = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    "wordle_wordlist"),
-    "r"
-    ).read().split("\n")
-words = list(set(words))
+with open("wordle_wordlist") as file:
+    words = file.read().split("\n")
+
 # Instructions for users
 help_text = """Please enter your initial guess and the results in the following form:
 
@@ -82,8 +81,27 @@ def filter_correct_letters(guess, flags, selected_words = words):
         selected_words = reg_filter(has_letter, selected_words)
     return selected_words
 
-letter_freq = lambda s: [s.count(c) for c in s]
-duplicates = lambda word: [c for c, d in zip(word, letter_freq(word)) if d > 1]
+stringify = lambda nparr: "".join(map(str, nparr.tolist()))
+
+# Create an appropriate set of flags given a guess and target
+def find_flags(guess, target):
+    guess = np.array([c for c in guess])
+    target = np.array([c for c in target])
+    # easy cases
+    return_flag = np.array([2 if g == t else 0 for g, t in zip(guess, target)])
+    # right letter, wrong position, not already accounted for
+    if any(return_flag == 2):
+        trimmed_target = np.array(target)[return_flag != 2]
+        f1 = [1 if (g in trimmed_target) and (f != 2) else 0 for g, f in zip(guess, return_flag)]
+    else:
+        f1 = [1 if g in target else 0 for g in guess]
+    return_flag += f1
+    return stringify(return_flag)
+
+### Tests
+#flag("guess", "stash") == 00021
+#flag("guess", "atash") == 00020
+#flag("guess", "stach") == 00011 # I can't think how you would choose which s to give it to without making things needlessly complicated.
 
 def filter_wrong_letters(guess, flags, selected_words = words):
     wrong_letters = "".join([c for c, f in zip(guess, flags) if f == "0"])
