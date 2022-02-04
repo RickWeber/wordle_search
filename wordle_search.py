@@ -1,11 +1,12 @@
 #!/usr/bin/python3
+import random
 import re
 import numpy as np
 #from english_words import english_words_lower_alpha_set as words
 #words = [w for w in words if len(w) == 5]
 
 # Word setup
-with open("wordle_wordlist", "r", encoding=str) as file:
+with open("wordle_wordlist") as file:
     words = file.read().split("\n")
 
 # Instructions for users
@@ -23,10 +24,56 @@ Don't put either part of your guess in quotation marks.
 Enter "exit" to exit the program.
 """
 
-# Take input, allow exit or ask for help
-# deal with incorrect syntax and simple fix
-# for input in wrong order
+def main_menu():
+    """offer the user a set of options, and set them up to use 
+    that option."""
+    print("Welcome. Would you like to find a good starter word [1] or find some follow-up guesses?")
+    move = input("Please enter 1, 2, or quit: ")
+    if move.lower() in ["q","quit","exit","x","stop"]:
+        quit()
+    if move not in ['1', '2']:
+        print("I didn't understand your input. Let's try this again...")
+        main_menu()
+    if move == '1':
+        compare_words_menu()
+    elif move == '2':
+        play_round_menu()
+    else:
+        quit()
+
+def compare_words_menu():
+    print("Do you have a word (or a few words) in mind that you'd like to check?")
+    given_words = input("Please enter yes or no: ")
+    if 'y' in given_words.lower():
+        print("I'm ready when you are. Type in your words, separated by spaces, then hit 'Enter'")
+        guesses = input('> ')
+    else:
+        print("Here are ten random words, and their score (higher is better):")
+        guesses = random.choices(words, k=10)
+    results = [[g, sample_score(g, words)] for g in guesses]
+    print(results)
+
+def play_round(wordlist):
+    guess, flags = take_input(False)
+    return filter_based_on_guess(guess, flags, [w for w in wordlist])
+
+def play_round_menu():
+    possible_words = words
+    print(help_text)
+    print("\nHere are some random words to consider as a first guess\n")
+    print(random.choices(possible_words, k = 10))
+    for r in range(5):
+        print("Round " + str(r) + ":\n")
+        possible_words = play_round(possible_words)
+        #print(possible_words)
+        print(random.choices(possible_words, k = 9))
+        if len(possible_words) < 1:
+            break
+
 def take_input(first = True):
+    """Take input, allow exit or ask for help
+    deal with incorrect syntax and simple fix
+    for input in wrong order"""
     if first:
         print(help_text)
         data = input("> ")
@@ -56,32 +103,29 @@ def take_input(first = True):
     return guess, flags
 
 # Functions to narrow word set
-#####
-# NOTE:
-# Somewhere in here, some letters aren't being fully filtered out.
 success = lambda f: f == "22222"
 include_reg = lambda c: "[" + c + "]+"
 exclude_reg = lambda c: "[^" + c + "]"
 wrap_up = lambda guess, flags: enumerate(zip([c for c in guess.lower()], [f for f in flags]))
-
 reg_filter = lambda regex, wordlist: [w for w in wordlist if re.search(regex, w)]
 
 def filter_correct_positions(guess, flags, wordlist = words):
+    """filter wordlist to those with letters in the right place"""
     pos_reg = re.compile("".join([c if f == "2" else '.' for c, f in zip(guess, flags)]))
     return reg_filter(pos_reg, wordlist)
 
 def filter_wrong_positions(guess, flags, wordlist = words):
+    """filter wordlist to cut out letters in known wrong places"""
     pos_reg = re.compile("".join([exclude_reg(c) if f == "1" else '.' for c, f in zip(guess, flags)]))
     return reg_filter(pos_reg, wordlist)
 
 def filter_correct_letters(guess, flags, wordlist = words):
+    """filter wordlist to those with the right letters, somewhere in there."""
     correct_letters = [c for c, f in zip(guess, flags) if int(f) > 0]
-    for l in correct_letters:
+    for l in correct_letters: # For each letter we know belongs:
         has_letter = re.compile(include_reg(l))
-        wordlist = reg_filter(has_letter, wordlist)
+        wordlist = reg_filter(has_letter, wordlist) # make sure there's at least one of this letter
     return wordlist
-
-stringify = lambda nparr: "".join(map(str, nparr.tolist()))
 
 # Create an appropriate set of flags given a guess and target
 def find_flags(guess, target):
@@ -97,7 +141,7 @@ def find_flags(guess, target):
         f1 = [1 if g in target else 0 for g in guess]
     f1 = np.array(f1)
     return_flag += f1
-    return stringify(return_flag)
+    "".join(map(str, return_flag.tolist())) # Convert to compact string.
 
 ### Tests
 #flag("guess", "stash") == 00021
@@ -105,13 +149,14 @@ def find_flags(guess, target):
 #flag("guess", "stach") == 00011 # I can't think how you would choose which s to give it to without making things needlessly complicated.
 
 def filter_wrong_letters(guess, flags, wordlist = words):
+    """filter letters that don't belong, but take account of green squares."""
     wrong_letters = "".join([c for c, f in zip(guess, flags) if f == "0"])
     # only exclude the wrong letters from places where we don't already know what goes there.
     pos = [exclude_reg(wrong_letters) if f != "2" else '.' for c, f in zip(guess, flags)]
     pos_reg = re.compile("".join(pos))
     return reg_filter(pos_reg, wordlist)
 
-def check_guess(guess, flags, wordlist = words):
+def filter_based_on_guess(guess, flags, wordlist = words):
     wordlist = filter_correct_positions(guess, flags, wordlist)
     wordlist = filter_wrong_positions(guess, flags, wordlist)
     wordlist = filter_correct_letters(guess, flags, wordlist)
@@ -122,23 +167,30 @@ def maximum_entropy_words(word_list):
     """prefer words with more different letters, and more likely letters"""
     return word_list
 
-def play_round(wordlist):
-    guess, flags = take_input(False)
-    return check_guess(guess, flags, [w for w in wordlist])
 
-def user_loop():
-    possible_words = words
-    print(help_text)
-    #print("\nHere are some random words to consider as a first guess\n")
-    #print(random.choices(possible_words, k = 30))
-    for r in range(6):
-        print("Round " + str(r) + ":\n")
-        possible_words = play_round(possible_words)
-        #word_sample = random.choices(possible_words, k = 10)
-        #print(word_sample)
-        print(possible_words)
-        if len(possible_words) < 2:
-            break
+# See how many words we have this evaluation of a guess compared to what we started with
+words_dropped = lambda g, f, w: len(w) - len(ws.filter_based_on_guess(g, f, w))
+
+# Try a word against a few random words, see how much it narrows the range on average
+def sample_score(word, wordlist, k = 20):
+    """Try a word against k targets randomly chosen from our wordlist.
+    Return the average number of words removed from the wordlist by the word for these targets."""
+    targets = random.choices([w for w in wordlist], k = k)
+    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in targets])
+    return np.mean(scores)
+
+def score_pair(guess1, guess2, target, wordlist):
+    """Try a pair of words and see how much they narrow the range"""
+    next_wordlist = ws.filter_based_on_guess(guess1, ws.find_flags(guess1, target), wordlist)
+    return words_dropped(guess1, target, wordlist) + words_dropped(guess2, target, next_wordlist)
+
+# Try a pair of words against a few random targets.
+def sample_score_pair(guess1, guess2, wordlist, k = 20):
+    """Try a pair of words against a few random targets."""
+    targets = random.choices([w for w in wordlist], k = k)
+    scores = np.array([score_pair(guess1, guess2, target, words) for target in targets])
+    return np.mean(scores)
+
 
 if __name__ == "__main__":
-    user_loop()
+    main_menu()

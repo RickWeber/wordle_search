@@ -8,7 +8,7 @@ import wordle_search as ws
 words = ws.words
 
 # See how many words we have this evaluation of a guess compared to what we started with
-words_dropped = lambda g, f, w: len(w) - len(ws.check_guess(g, f, w))
+words_dropped = lambda g, f, w: len(w) - len(ws.filter_based_on_guess(g, f, w))
 
 # Try a word against a few random words, see how much it narrows the range on average
 def sample_score(word, wordlist, k = 20):
@@ -20,7 +20,7 @@ def sample_score(word, wordlist, k = 20):
 
 def score_pair(guess1, guess2, target, wordlist):
     """Try a pair of words and see how much they narrow the range"""
-    next_wordlist = ws.check_guess(guess1, ws.find_flags(guess1, target), wordlist)
+    next_wordlist = ws.filter_based_on_guess(guess1, ws.find_flags(guess1, target), wordlist)
     return words_dropped(guess1, target, wordlist) + words_dropped(guess2, target, next_wordlist)
 
 # Try a pair of words against a few random targets.
@@ -31,16 +31,22 @@ def sample_score_pair(guess1, guess2, wordlist, k = 20):
     return np.mean(scores)
 
 # CLI setup
-parser = argparse.ArgumentParser(description="A program to help you choose a better first guess word for Wordle. Higher scores are better")
+help_text = """ A program to help you make better initial guesses. 
+Enter one word to see how many words it eliminates from the word list on average. 
+The higher the number, the better that guess is.
+
+Enter two words to do the same thing for your first two guesses.
+
+"A program to help you choose a better first guess word for Wordle. Higher scores are better"
+"""
+parser = argparse.ArgumentParser(description=help_text)
 parser.add_argument("guess1", nargs = 1, metavar = "word1", type = str)
 parser.add_argument("guess2", nargs = "?", metavar = "word2", type = str)
+#parer.add_argument("--compare") compare a list of first guesses against each other.
 args = parser.parse_args()
 
 def user_loop():
-    if args.guess2:
-        answer = sample_score_pair(words[0], words[1], words)
-    else:
-        answer = sample_score(args.guess1, words)
+    answer = sample_score(args.guess1, words)
     print(answer, file = sys.stdout)
 
 if __name__ == "__main__":
