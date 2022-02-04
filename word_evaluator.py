@@ -14,22 +14,21 @@ words_dropped = lambda g, f, w: len(w) - len(ws.check_guess(g, f, w))
 def sample_score(word, wordlist, k = 20):
     """Try a word against k targets randomly chosen from our wordlist.
     Return the average number of words removed from the wordlist by the word for these targets."""
-    random_targets = random.choices([w for w in wordlist if w != word], k = k)
-    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in random_targets])
+    targets = random.choices([w for w in wordlist], k = k)
+    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in targets])
     return np.mean(scores)
 
-# Try a pair of words (in order) and see how much they narrow the range
 def score_pair(guess1, guess2, target, wordlist):
+    """Try a pair of words and see how much they narrow the range"""
     next_wordlist = ws.check_guess(guess1, ws.find_flags(guess1, target), wordlist)
     return words_dropped(guess1, target, wordlist) + words_dropped(guess2, target, next_wordlist)
 
 # Try a pair of words against a few random targets.
 def sample_score_pair(guess1, guess2, wordlist, k = 20):
-    score = 0
-    random_targets = random.choices([w for w in wordlist if w not in [guess1, guess2]], k = k)
-    for t in random_targets:
-        score += score_pair(guess1, guess2, t, wordlist)
-    return score
+    """Try a pair of words against a few random targets."""
+    targets = random.choices([w for w in wordlist], k = k)
+    scores = np.array([score_pair(guess1, guess2, target, words) for target in targets])
+    return np.mean(scores)
 
 # CLI setup
 parser = argparse.ArgumentParser(description="A program to help you choose a better first guess word for Wordle. Higher scores are better")

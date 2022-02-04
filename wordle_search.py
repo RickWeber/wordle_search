@@ -5,7 +5,7 @@ import numpy as np
 #words = [w for w in words if len(w) == 5]
 
 # Word setup
-with open("wordle_wordlist", "r", "t") as file:
+with open("wordle_wordlist", "r", encoding=str) as file:
     words = file.read().split("\n")
 
 # Instructions for users
@@ -63,23 +63,23 @@ success = lambda f: f == "22222"
 include_reg = lambda c: "[" + c + "]+"
 exclude_reg = lambda c: "[^" + c + "]"
 wrap_up = lambda guess, flags: enumerate(zip([c for c in guess.lower()], [f for f in flags]))
-def reg_filter(regex, selected_words):
-    return [w for w in selected_words if re.search(regex, w)]
 
-def filter_correct_positions(guess, flags, selected_words = words):
+reg_filter = lambda regex, wordlist: [w for w in wordlist if re.search(regex, w)]
+
+def filter_correct_positions(guess, flags, wordlist = words):
     pos_reg = re.compile("".join([c if f == "2" else '.' for c, f in zip(guess, flags)]))
-    return reg_filter(pos_reg, selected_words)
+    return reg_filter(pos_reg, wordlist)
 
-def filter_wrong_positions(guess, flags, selected_words = words):
+def filter_wrong_positions(guess, flags, wordlist = words):
     pos_reg = re.compile("".join([exclude_reg(c) if f == "1" else '.' for c, f in zip(guess, flags)]))
-    return reg_filter(pos_reg, selected_words)
+    return reg_filter(pos_reg, wordlist)
 
-def filter_correct_letters(guess, flags, selected_words = words):
+def filter_correct_letters(guess, flags, wordlist = words):
     correct_letters = [c for c, f in zip(guess, flags) if int(f) > 0]
     for l in correct_letters:
         has_letter = re.compile(include_reg(l))
-        selected_words = reg_filter(has_letter, selected_words)
-    return selected_words
+        wordlist = reg_filter(has_letter, wordlist)
+    return wordlist
 
 stringify = lambda nparr: "".join(map(str, nparr.tolist()))
 
@@ -95,6 +95,7 @@ def find_flags(guess, target):
         f1 = [1 if (g in trimmed_target) and (f != 2) else 0 for g, f in zip(guess, return_flag)]
     else:
         f1 = [1 if g in target else 0 for g in guess]
+    f1 = np.array(f1)
     return_flag += f1
     return stringify(return_flag)
 
@@ -103,27 +104,27 @@ def find_flags(guess, target):
 #flag("guess", "atash") == 00020
 #flag("guess", "stach") == 00011 # I can't think how you would choose which s to give it to without making things needlessly complicated.
 
-def filter_wrong_letters(guess, flags, selected_words = words):
+def filter_wrong_letters(guess, flags, wordlist = words):
     wrong_letters = "".join([c for c, f in zip(guess, flags) if f == "0"])
     # only exclude the wrong letters from places where we don't already know what goes there.
     pos = [exclude_reg(wrong_letters) if f != "2" else '.' for c, f in zip(guess, flags)]
     pos_reg = re.compile("".join(pos))
-    return reg_filter(pos_reg, selected_words)
+    return reg_filter(pos_reg, wordlist)
 
-def check_guess(guess, flags, selected_words = words):
-    selected_words = filter_correct_positions(guess, flags, selected_words)
-    selected_words = filter_wrong_positions(guess, flags, selected_words)
-    selected_words = filter_correct_letters(guess, flags, selected_words)
-    selected_words = filter_wrong_letters(guess, flags, selected_words)
-    return selected_words
+def check_guess(guess, flags, wordlist = words):
+    wordlist = filter_correct_positions(guess, flags, wordlist)
+    wordlist = filter_wrong_positions(guess, flags, wordlist)
+    wordlist = filter_correct_letters(guess, flags, wordlist)
+    wordlist = filter_wrong_letters(guess, flags, wordlist)
+    return wordlist
 
 def maximum_entropy_words(word_list):
     """prefer words with more different letters, and more likely letters"""
-    return word_list # TODO: Implement!
+    return word_list
 
-def play_round(selected_words):
+def play_round(wordlist):
     guess, flags = take_input(False)
-    return check_guess(guess, flags, [w for w in selected_words])
+    return check_guess(guess, flags, [w for w in wordlist])
 
 def user_loop():
     possible_words = words
