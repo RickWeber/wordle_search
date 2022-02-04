@@ -1,11 +1,11 @@
 #!/usr/bin/python3
-import re, os
+import re
 import numpy as np
 #from english_words import english_words_lower_alpha_set as words
 #words = [w for w in words if len(w) == 5]
 
 # Word setup
-with open("wordle_wordlist") as file:
+with open("wordle_wordlist", "r", "t") as file:
     words = file.read().split("\n")
 
 # Instructions for users

@@ -1,22 +1,22 @@
 #!/usr/bin/python3
-#import functools
-#import re, os, random, argparse, sys
-import random, argparse, sys
+import random
+import argparse
+import sys
 import numpy as np
 import wordle_search as ws
-from wordle_search_cli import check_guess
 # import words
 words = ws.words
 
-# For a given word, and a given target see how much it narrows the range of possible words
-words_dropped = lambda guess, flags, wordlist: len(wordlist) - len(ws.check_guess(guess, flags, wordlist))
+# See how many words we have this evaluation of a guess compared to what we started with
+words_dropped = lambda g, f, w: len(w) - len(ws.check_guess(g, f, w))
 
 # Try a word against a few random words, see how much it narrows the range on average
-# TODO: find out why it's returning such small numbers
 def sample_score(word, wordlist, k = 20):
+    """Try a word against k targets randomly chosen from our wordlist.
+    Return the average number of words removed from the wordlist by the word for these targets."""
     random_targets = random.choices([w for w in wordlist if w != word], k = k)
-    scores = np.array([words_dropped(word, target, wordlist) for target in random_targets])
-    return scores
+    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in random_targets])
+    return np.mean(scores)
 
 # Try a pair of words (in order) and see how much they narrow the range
 def score_pair(guess1, guess2, target, wordlist):
@@ -26,7 +26,7 @@ def score_pair(guess1, guess2, target, wordlist):
 # Try a pair of words against a few random targets.
 def sample_score_pair(guess1, guess2, wordlist, k = 20):
     score = 0
-    random_targets = random.choices([w for w in wordlist if w not in [guess1, guess2]])
+    random_targets = random.choices([w for w in wordlist if w not in [guess1, guess2]], k = k)
     for t in random_targets:
         score += score_pair(guess1, guess2, t, wordlist)
     return score
