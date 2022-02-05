@@ -14,8 +14,8 @@ words_dropped = lambda g, f, w: len(w) - len(ws.filter_based_on_guess(g, f, w))
 def sample_score(word, wordlist, k = 20):
     """Try a word against k targets randomly chosen from our wordlist.
     Return the average number of words removed from the wordlist by the word for these targets."""
-    targets = random.choices([w for w in wordlist], k = k)
-    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in targets])
+    tgts = random.choices([w for w in wordlist], k = k)
+    scores = np.array([words_dropped(word, ws.find_flags(word, target), wordlist) for target in tgts])
     return np.mean(scores)
 
 def score_pair(guess1, guess2, target, wordlist):
@@ -31,7 +31,7 @@ def sample_score_pair(guess1, guess2, wordlist, k = 20):
     return np.mean(scores)
 
 # CLI setup
-help_text = """ A program to help you make better initial guesses. 
+help_text = """ A program to help you make better initial guesses.
 Enter one word to see how many words it eliminates from the word list on average. 
 The higher the number, the better that guess is.
 
@@ -51,11 +51,3 @@ def user_loop():
 
 if __name__ == "__main__":
     user_loop()
-
-# Initial analysis:
-# See which words from our wordlist, when applied to a random sample of other words, cuts the wordlist by the most?
-#layer1_scores = {w: sample_score(w, words, k=20) for w in words}
-#layer1_sorted = dict(sorted(layer1_scores.items(), key = lambda x:x[1])) # sort words by scores and put back into dict
-# check pairs of guesses
-#layer2_scores = {g1: {g2: sample_score_pair(g1, g2, words, k = 20)} for g1 in words for g2 in words if g1 != g2}
-#top_scores = sorted(layer2_scores.values().values()) # will this work?
