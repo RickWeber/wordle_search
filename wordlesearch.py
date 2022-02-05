@@ -4,7 +4,7 @@ import re
 import time
 import numpy as np
 # Word setup
-with open("wordle_wordlist") as file:
+with open("wordlist.txt") as file:
     words = file.read().split("\n")
 
 def main_menu():
