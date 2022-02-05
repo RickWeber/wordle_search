@@ -10,12 +10,12 @@ with open("wordlist.txt") as file:
 def main_menu():
     """offer the user a set of options, and set them up to use
     that option."""
-    WELCOME_TEXT = """
+    welcome_text = """
 Would you like to:
   1: find a good starter word 
   2: or find some follow-up guesses?
 """
-    print(WELCOME_TEXT)
+    print(welcome_text)
     move = input("Please enter 1, 2, or quit: ")
     if move.lower() in ["q","quit","exit","x","stop"]:
         quit()
@@ -88,7 +88,7 @@ def take_input(first = True):
     """Take input, allow exit or ask for help
     deal with incorrect syntax and simple fix
     for input in wrong order"""
-    HELP_TEXT = """Please enter your initial guess and the results in the following form:
+    help_text = """Please enter your initial guess and the results in the following form:
 
     guess 00122
 
@@ -102,14 +102,14 @@ def take_input(first = True):
     Enter "exit" to exit the program.
     """
     if first:
-        print(HELP_TEXT)
+        print(help_text)
         data = input("> ")
     else:
         data = input("> ")
     if data.lower() in ["q","quit","exit","x","stop"]:
         quit()
     if data.lower() in ["h", "help"]:
-        print(HELP_TEXT)
+        print(help_text)
         data = take_input(False)
     while len(data) != 11: 
         print("Your guess, and the flags should each be 5 characters long.")
