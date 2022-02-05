@@ -1,10 +1,17 @@
 # wordle_search
 Python script to help me narrow down my wordle guesses.
 
-In it's current state it will work if you run `python ./wordle_search.py` in the
-appropriate directory. Start by playing your favorite starter word on Wordle,
-then type that word followed by a string of digits indicating how your word was
-evaluated.
+At the terminal run:
+
+```
+$ python ./wordle_search.py
+```
+
+You can evaluate starting words against possible targets (menu option 1), or get help choosing your subsequent guesses (menu option 2).
+
+With the first option, you can compare a list of options (for example, if you want to dunk on your friends for using 'peppy' as their starting word), or get a random set of starting words ranked from best to worst.
+
+For getting help with subsequent guesses, you'll enter your word and a series of flags to represent letter matches (where 0, 1, and 2 correspond with grey, yellow, and green squares).
 
 For example, on February 1st, my favorite starter word ('chaos') returned
 "02011" where 0 is a grey square (no match), 1 is a yellow square (right letter,
@@ -17,17 +24,3 @@ program and it will return a list of viable guesses:
 
 Continuing this way will return shorter and shorter lists until you've got a
 winning guess. Hopefully it happens quickly enough for a win!
-
-To evaluate a starting word, you can run `word_evaluator.py`. At the terminal
-prompt, run the following command for help.
-
-```
-$ python ./word_evaluator.py -h
-```
-
-If you give it a single word, it will tell you how many words that guess will
-eliminate from the list of possibilities on average. (Higher scores are better). 
-
-If you give it a pair of words, it will tell you how many words are eliminated
-by making both of those guesses. Putting in the same word twice should give you
-the same results as putting it in once.
