@@ -1,5 +1,5 @@
 # wordle_search
-Python script to help me narrow down my wordle guesses.
+A python script to help me narrow down my wordle guesses.
 
 At the terminal run:
 
