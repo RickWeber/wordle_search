@@ -29,6 +29,10 @@ Would you like to:
     else:
         quit()
 
+def compare_all_words(k = 5):
+    results = [[word, sample_score(word, words, k)] for word in words]
+    return sorted(results, key=lambda x: x[1], reverse=True)
+
 def compare_words_menu():
     """Compare a few different words as first guesses."""
     print("Do you have a word (or a few words) in mind that you'd like to check?")
@@ -41,10 +45,10 @@ def compare_words_menu():
         print("Here are ten random words:\n")
         guesses = random.choices(words, k=10)
         print(guesses)
-    print("\nHow many random targets do you want to compare these words to? [or 'Enter' for default of 20]")
+    print("\nHow many random targets do you want to compare these words to? [number or 'Enter' for default of 20]")
     k = input('> ') or 20
     try:
-        results = [[g, sample_score(g, words, int(k))] for g in guesses]
+        results = [[g, sample_score(g, words, k)] for g in guesses]
     except:
         print("\nI didn't know what to do with your entry, so I'm just choosing 20.")
         results = [[g, sample_score(g, words)] for g in guesses]
