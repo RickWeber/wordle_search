@@ -1,10 +1,10 @@
-# wordle_search
+# wordlesearch
 A python script to help me narrow down my wordle guesses.
 
 At the terminal run:
 
 ```
-$ python ./wordle_search.py
+$ python ./wordlesearch.py
 ```
 
 You can evaluate starting words against possible targets (menu option 1), or get help choosing your subsequent guesses (menu option 2).
