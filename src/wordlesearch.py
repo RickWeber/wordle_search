@@ -46,10 +46,12 @@ def compare_words_menu():
         guesses = random.choices(words, k=10)
         print(guesses)
     print("\nHow many random targets do you want to compare these words to? [number or 'Enter' for default of 20]")
+    print("note: larger numbers may take a while to check.")
     k = input('> ') or 20
+    k = int(k)
     try:
         results = [[g, sample_score(g, words, k)] for g in guesses]
-    except:
+    except ValueError:
         print("\nI didn't know what to do with your entry, so I'm just choosing 20.")
         results = [[g, sample_score(g, words)] for g in guesses]
     print("\nDo you want your results sorted from best to worst? [Y/n]")
@@ -75,7 +77,7 @@ def play_round_menu():
         print(f"Round {r}:")
         possible_words = play_round(possible_words)
         #print(possible_words)
-        print(random.choices(possible_words, k = 9))
+        print(random.choices(possible_words, k = 10))
         if len(possible_words) < 1:
             break
     print("That's pretty coooool...")
@@ -194,10 +196,10 @@ def maximum_entropy_words(word_list):
 words_dropped = lambda g, f, w: len(w) - len(filter_based_on_guess(g, f, w))
 
 # Try a word against a few random words, see how much it narrothe range on average
-def sample_score(word, wordlist, k = 20):
+def sample_score(word, wordlist, samples = 20):
     """Try a word against k targets randomly chosen from our wordlist.
     Return the average number of words removed from the wordlist by the word for these targets."""
-    tgts = random.choices([w for w in wordlist], k = k)
+    tgts = random.choices([w for w in wordlist], k = samples)
     scores = np.array([words_dropped(word, find_flags(word, t), wordlist) for t in tgts])
     return np.mean(scores)
 
@@ -207,9 +209,9 @@ def score_pair(guess1, guess2, target, wordlist):
     return words_dropped(guess1, target, wordlist) + words_dropped(guess2, target, next_wordlist)
 
 # Try a pair of words against a few random targets.
-def sample_score_pair(guess1, guess2, wordlist, k = 20):
+def sample_score_pair(guess1, guess2, wordlist, samples = 20):
     """Try a pair of words against a few random targets."""
-    targets = random.choices([w for w in wordlist], k = k)
+    targets = random.choices([w for w in wordlist], k = samples)
     scores = np.array([score_pair(guess1, guess2, target, words) for target in targets])
     return np.mean(scores)
 
