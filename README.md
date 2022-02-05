@@ -4,8 +4,10 @@ A python script to help me narrow down my wordle guesses.
 At the terminal run:
 
 ```
-$ python ./wordlesearch.py
+$ cd src && python ./wordlesearch.py
 ```
+
+You can also try it out at [replit](https://replit.com/@RickWeber/wordlesearch#src/wordlesearch.py).
 
 You can evaluate starting words against possible targets (menu option 1), or get help choosing your subsequent guesses (menu option 2).
 
