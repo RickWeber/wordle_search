@@ -5,7 +5,12 @@ import time
 import numpy as np
 # Word setup
 with open("wordlist.txt") as file:
-    words = file.read().split("\n")
+    allwords = file.read().split("\n")
+if cheatmode: # implement later
+    with open("knownanswers.txt") as file:
+        words = file.read().split("\n")
+else:
+    words = allwords
 
 def main_menu():
     """offer the user a set of options, and set them up to use
