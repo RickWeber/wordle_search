@@ -2,15 +2,11 @@
 import random
 import re
 import time
+import datetime
 import numpy as np
 # Word setup
 with open("wordlist.txt") as file:
-    allwords = file.read().split("\n")
-if cheatmode: # implement later
-    with open("knownanswers.txt") as file:
-        words = file.read().split("\n")
-else:
-    words = allwords
+    words = file.read().split("\n")
 
 def main_menu():
     """offer the user a set of options, and set them up to use
@@ -24,15 +20,50 @@ Would you like to:
     move = input("Please enter 1, 2, or quit: ")
     if move.lower() in ["q","quit","exit","x","stop"]:
         quit()
-    if move not in ['1', '2']:
+    if move not in ['1', '2', '3']:
         print("\nI didn't understand your input. Let's try this again...\n")
         main_menu()
     if move == '1':
         compare_words_menu()
     elif move == '2':
         play_round_menu()
+    elif move == '3':
+        cheatmode()
     else:
         quit()
+
+def cheatmode():
+    """Let the user cheat."""
+    print("Oh, we're doing cheat mode are we?")
+    with open("knownanswers.txt") as file:
+        correct_words = file.read().split("\n")
+    today = datetime.datetime.now()
+    start_of_wordle = datetime.datetime(2021, 6, 19)
+    date_index = (today - start_of_wordle).days
+    print("Are you sure you want to cheat? [y/N]")
+    cheat_decision = input('> ')
+    if "y" not in cheat_decision.lower():
+        print("That's very admirable. Let's go back to the main menu.\n")
+        main_menu()
+    print("Do you want today's word, or another day?[Y/n]")
+    today = input('> ')
+    if "y" not in today:
+        print("Give me a number and I'll tell you what the word will be that many days in the future.")
+        print("You can give me a negative number and I'll tell you the correct word from a day in the past.")
+        timeshift = input('> ')
+        timeshift = int(timeshift)
+        date_index += timeshift
+        print(date_index)
+        if date_index < 0:
+            date_index = 0
+            print("That's too far back. Here's the first wordle word ever:")
+        if date_index > len(correct_words):
+            date_index = -1
+            print("That's too far in the future. Here's the last wordle word (based on the original game):")
+    print(f"The correct word is {correct_words[date_index]}")
+    print("That's pretty coooool...")
+    time.sleep(2)
+    main_menu()
 
 def compare_all_words(k = 5):
     results = [[word, sample_score(word, words, k)] for word in words]
