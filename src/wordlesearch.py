@@ -102,7 +102,7 @@ def compare_words_menu():
 
 def play_round(wordlist):
     guess, flags = take_input(False)
-    return filter_based_on_guess(guess, flags, [w for w in wordlist])
+    return filter_based_on_guess(guess, flags, list(wordlist))
 
 def play_round_menu():
     """Provide instructions for the user and narrow their list of possible words"""
@@ -139,9 +139,7 @@ def take_input(first = True):
     """
     if first:
         print(help_text)
-        data = input("> ")
-    else:
-        data = input("> ")
+    data = input("> ")
     if data.lower() in ["q","quit","exit","x","stop"]:
         quit()
     if data.lower() in ["h", "help"]:
@@ -170,8 +168,8 @@ def take_input(first = True):
 
 # Functions to narrow word set
 success = lambda f: f == "22222"
-include_reg = lambda c: "[" + c + "]+"
-exclude_reg = lambda c: "[^" + c + "]"
+include_reg = lambda c: f"[{c}]+"
+exclude_reg = lambda c: f"[^{c}]"
 reg_filter = lambda regex, wordlist: [w for w in wordlist if re.search(regex, w)]
 
 def filter_correct_positions(guess, flags, wordlist = words):
@@ -194,8 +192,8 @@ def filter_correct_letters(guess, flags, wordlist = words):
 
 # Create an appropriate set of flags given a guess and target
 def find_flags(guess, target):
-    guess = np.array([c for c in guess])
-    target = np.array([c for c in target])
+    guess = np.array(list(guess))
+    target = np.array(list(target))
     # easy cases
     return_flag = np.array([2 if g == t else 0 for g, t in zip(guess, target)])
     # right letter, wrong position, not already accounted for
@@ -235,7 +233,7 @@ words_dropped = lambda g, f, w: len(w) - len(filter_based_on_guess(g, f, w))
 def sample_score(word, wordlist, samples = 20):
     """Try a word against k targets randomly chosen from our wordlist.
     Return the average number of words removed from the wordlist by the word for these targets."""
-    tgts = random.choices([w for w in wordlist], k = samples)
+    tgts = random.choices(list(wordlist), k = samples)
     scores = np.array([words_dropped(word, find_flags(word, t), wordlist) for t in tgts])
     return np.mean(scores)
 
@@ -247,7 +245,7 @@ def score_pair(guess1, guess2, target, wordlist):
 # Try a pair of words against a few random targets.
 def sample_score_pair(guess1, guess2, wordlist, samples = 20):
     """Try a pair of words against a few random targets."""
-    targets = random.choices([w for w in wordlist], k = samples)
+    targets = random.choices(list(wordlist), k = samples)
     scores = np.array([score_pair(guess1, guess2, target, words) for target in targets])
     return np.mean(scores)
 
